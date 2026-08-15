@@ -1,0 +1,45 @@
+{
+  "name": "bps-statistical-planning-platform",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --pretty false",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "qa": "node scripts/qa-test.mjs && npx vite-node scripts/qa-domain.ts && npx vite-node scripts/qa-demo.ts",
+    "deploy": "npm run build && npx vercel --yes",
+    "deploy:prod": "npm run build && npx vercel --prod --yes"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "docx": "^9.5.0",
+    "file-saver": "^2.0.5",
+    "framer-motion": "^12.23.12",
+    "iconsax-react": "^0.0.8",
+    "lucide-react": "^0.539.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.8.0",
+    "zustand": "^5.0.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/file-saver": "^2.0.7",
+    "@types/node": "^24.2.1",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "eslint": "^9.33.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.39.1",
+    "vite": "^7.1.2"
+  }
+}

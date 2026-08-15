@@ -1,0 +1,18 @@
+{
+  "name": "StatPlan — BPS Lombok Tengah",
+  "short_name": "StatPlan",
+  "description": "Platform perencanaan kegiatan statistik berbasis GSBPM 5.2 untuk OPD Kabupaten Lombok Tengah",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b3a5c",
+  "theme_color": "#0b3a5c",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/branding/statplan-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

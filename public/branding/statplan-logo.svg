@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" role="img" aria-label="StatPlan">
+  <defs>
+    <linearGradient id="sp-bg" x1="8" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B3A5C"/>
+      <stop offset="1" stop-color="#114A73"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="12" fill="url(#sp-bg)"/>
+  <path d="M12 34V14h5.2v15.2H25V34H12zm14.8 0V14H37c2.6 0 4.55.55 5.75 1.65S44.5 18.3 44.5 20.55c0 2.2-.55 3.85-1.65 4.95-1.1 1.05-2.95 1.6-5.55 1.6H31.8V34h-5zm5-12.4h4.7c1.15 0 1.95-.22 2.4-.65.45-.45.68-1.1.68-1.95s-.23-1.5-.68-1.92c-.45-.45-1.25-.67-2.4-.67H31.8v5.19z" fill="#F5C842"/>
+  <circle cx="37.5" cy="34.5" r="2.4" fill="#F5C842"/>
+  <path d="M10 38.5h28" stroke="#F5C842" stroke-opacity="0.35" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
