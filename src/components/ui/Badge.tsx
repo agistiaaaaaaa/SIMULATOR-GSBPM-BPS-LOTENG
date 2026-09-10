@@ -47,7 +47,7 @@ export function ProgressBar({
   return (
     <div className={cn('relative', className)}>
       <div
-        className="h-2.5 w-full overflow-hidden rounded-full bg-ink-100/90"
+        className="h-2 w-full overflow-hidden rounded-full bg-ink-100"
         role="progressbar"
         aria-valuenow={v}
         aria-valuemin={0}
@@ -56,8 +56,8 @@ export function ProgressBar({
       >
         <div
           className={cn(
-            'h-full rounded-full transition-all duration-700 ease-out',
-            premium ? 'shimmer-bar' : 'bg-gradient-to-r from-ink-900 via-ink-700 to-ink-600',
+            'h-full rounded-full motion-safe:transition-[width] motion-safe:duration-500 motion-safe:ease-out',
+            premium ? 'bg-ink-900' : 'bg-ink-800',
           )}
           style={{ width: `${v}%` }}
         />
@@ -92,7 +92,7 @@ export function Card({
       className={cn(
         'surface-card p-5',
         hover &&
-          'cursor-default transition-all duration-300 hover:-translate-y-0.5 hover:border-ink-600/20 hover:shadow-(--shadow-lift)',
+          'cursor-default motion-safe:transition-all motion-safe:duration-200 hover:border-ink-600/20 hover:shadow-(--shadow-soft) motion-safe:hover:-translate-y-px',
         className,
       )}
     >
@@ -117,41 +117,36 @@ export function StatCard({
   children?: React.ReactNode
 }) {
   const accents = {
-    ink: 'from-ink-900/10 to-transparent text-ink-900',
-    gold: 'from-gold-500/20 to-transparent text-ink-900',
-    success: 'from-success/15 to-transparent text-success',
-    warning: 'from-warning/15 to-transparent text-warning',
+    ink: 'bg-ink-50 text-ink-900',
+    gold: 'bg-gold-100 text-ink-900',
+    success: 'bg-success-soft text-success',
+    warning: 'bg-warning-soft text-warning',
   }
   return (
-    <Card className="relative overflow-hidden">
-      <div
-        className={cn(
-          'pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br opacity-80',
-          accents[accent],
-        )}
-      />
-      <div className="relative flex items-start justify-between gap-3">
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-600/70">
+    <Card className="flex min-h-[7.5rem] flex-col justify-between p-4 active:scale-[0.995] sm:min-h-[8.75rem] sm:p-5 sm:active:scale-100">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-600 sm:text-xs">
             {label}
           </div>
-          <div className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink-950">
+          <div className="mt-1.5 font-display text-[1.6rem] font-semibold leading-none tracking-tight text-ink-950 sm:mt-2 sm:text-[1.75rem] sm:text-3xl">
             {value}
           </div>
-          {hint ? <p className="mt-1 text-xs text-ink-600">{hint}</p> : null}
         </div>
         {icon ? (
           <div
             className={cn(
-              'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br',
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
               accents[accent],
             )}
+            aria-hidden
           >
             {icon}
           </div>
         ) : null}
       </div>
-      {children ? <div className="relative mt-3">{children}</div> : null}
+      {hint ? <p className="mt-2.5 text-xs leading-relaxed text-ink-600 sm:mt-3">{hint}</p> : null}
+      {children ? <div className="mt-2.5 sm:mt-3">{children}</div> : null}
     </Card>
   )
 }

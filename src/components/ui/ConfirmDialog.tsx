@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 
 export function ConfirmDialog({
@@ -23,6 +23,7 @@ export function ConfirmDialog({
 }) {
   const cancelRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
+  const reduceMotion = useReducedMotion()
 
   useEffect(() => {
     if (!open) return
@@ -54,10 +55,10 @@ export function ConfirmDialog({
         <motion.div
           className="fixed inset-0 z-[95] flex items-center justify-center bg-ink-950/45 p-4 backdrop-blur-[2px]"
           role="presentation"
-          initial={{ opacity: 0 }}
+          initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          exit={reduceMotion ? undefined : { opacity: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.15 }}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) onCancel()
           }}
@@ -68,11 +69,11 @@ export function ConfirmDialog({
             aria-modal="true"
             aria-labelledby="confirm-title"
             aria-describedby="confirm-desc"
-            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.98 }}
-            transition={{ duration: 0.18 }}
-            className="w-full max-w-md rounded-2xl border border-border bg-white p-5 shadow-(--shadow-lift)"
+            exit={reduceMotion ? undefined : { opacity: 0, y: 6, scale: 0.98 }}
+            transition={{ duration: reduceMotion ? 0 : 0.18 }}
+            className="w-full max-h-[min(32rem,calc(100vh-2rem))] max-w-md overflow-y-auto rounded-2xl border border-border bg-white p-5 shadow-(--shadow-lift)"
           >
             <h2 id="confirm-title" className="text-lg font-semibold text-ink-950">
               {title}

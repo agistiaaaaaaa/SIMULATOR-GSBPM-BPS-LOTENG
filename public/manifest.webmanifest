@@ -5,14 +5,20 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b3a5c",
-  "theme_color": "#0b3a5c",
+  "theme_color": "#0093dd",
   "lang": "id",
   "icons": [
     {
-      "src": "/branding/statplan-logo.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/branding/statplan-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/branding/statplan-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

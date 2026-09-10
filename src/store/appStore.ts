@@ -10,8 +10,12 @@ import {
   exportDemoJson,
   getDemoProjects,
   importDemoJson,
+  isDemoProject,
   markDemoCleared,
   markDemoSeeded,
+  mergeDemoProjects,
+  mergeImportedProjects,
+  removeDemoProjects,
   shouldAutoSeed,
   shouldRefreshDemoSeed,
 } from '@/demo/seed'
@@ -439,23 +443,29 @@ export const useAppStore = create<AppState>()(
         })),
 
       loadDemoData: () => {
-        const projects = getDemoProjects()
-        set({ projects })
+        set((state) => ({
+          projects: mergeDemoProjects(state.projects, getDemoProjects()),
+        }))
         markDemoSeeded()
       },
 
       resetDemo: () => {
-        set({ projects: [] })
+        set((state) => ({
+          projects: removeDemoProjects(state.projects),
+        }))
         markDemoCleared()
       },
 
-      exportDemoBundle: () => exportDemoJson(get().projects),
+      exportDemoBundle: () =>
+        exportDemoJson(get().projects.filter(isDemoProject)),
 
       importDemoBundle: (raw) => {
-        const projects = importDemoJson(raw).map((p) =>
+        const importedProjects = importDemoJson(raw).map((p) =>
           migrateProject(p as Partial<Project> & { id: string }),
         )
-        set({ projects })
+        set((state) => ({
+          projects: mergeImportedProjects(state.projects, importedProjects),
+        }))
         markDemoSeeded()
       },
 
@@ -484,9 +494,9 @@ export const useAppStore = create<AppState>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return
 
-        const looksLikeDemo = state.projects.some((p) => String(p.id ?? '').startsWith('demo-'))
+        const looksLikeDemo = state.projects.some(isDemoProject)
         if (shouldRefreshDemoSeed() && looksLikeDemo) {
-          state.projects = getDemoProjects()
+          state.projects = mergeDemoProjects(state.projects, getDemoProjects())
           markDemoSeeded()
           return
         }

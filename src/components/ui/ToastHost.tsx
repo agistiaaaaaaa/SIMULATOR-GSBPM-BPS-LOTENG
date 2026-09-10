@@ -1,6 +1,6 @@
 import { useToastStore, type ToastTone } from '@/store/toastStore'
 import { Danger, InfoCircle, TickCircle, Warning2 } from 'iconsax-react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 
 const toneUi: Record<
   ToastTone,
@@ -15,10 +15,11 @@ const toneUi: Record<
 export function ToastHost() {
   const items = useToastStore((s) => s.items)
   const dismiss = useToastStore((s) => s.dismiss)
+  const reduceMotion = useReducedMotion()
 
   return (
     <div
-      className="pointer-events-none fixed bottom-20 right-4 z-[90] flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2 lg:bottom-6"
+      className="pointer-events-none fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-3 z-[90] flex w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-2 sm:right-4 xl:bottom-6"
       aria-live="polite"
     >
       <AnimatePresence>
@@ -28,10 +29,10 @@ export function ToastHost() {
           return (
             <motion.div
               key={t.id}
-              initial={{ opacity: 0, y: 8, scale: 0.98 }}
+              initial={reduceMotion ? false : { opacity: 0, y: 8, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 6 }}
-              transition={{ duration: 0.2 }}
+              exit={reduceMotion ? undefined : { opacity: 0, y: 6 }}
+              transition={{ duration: reduceMotion ? 0 : 0.2 }}
               className={`pointer-events-auto flex items-start gap-2 rounded-xl border bg-white px-3.5 py-2.5 text-sm text-ink-900 shadow-(--shadow-lift) ${ui.border}`}
               role="status"
             >

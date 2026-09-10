@@ -5,7 +5,7 @@ import { HelpTip } from '@/components/ui/HelpTip'
 
 export function AboutPage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-5 pb-24 md:pb-8">
+    <div className="mx-auto max-w-3xl space-y-5">
       <div>
         <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-600">
           Informasi produk

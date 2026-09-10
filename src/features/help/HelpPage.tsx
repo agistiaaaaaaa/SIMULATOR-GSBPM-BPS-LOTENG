@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Book1, ArrowRight2, TickCircle } from 'iconsax-react'
 import { Card, Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -26,8 +26,9 @@ const GLOSSARY_KEYS = [
 ] as const
 
 export function HelpPage() {
+  const navigate = useNavigate()
   return (
-    <div className="mx-auto max-w-3xl space-y-4 pb-24 md:pb-8">
+    <div className="mx-auto max-w-3xl space-y-4">
       <div>
         <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-600">
           Panduan mandiri
@@ -38,16 +39,17 @@ export function HelpPage() {
           singkat yang sama. Semua keluaran berstatus <strong>draf</strong> hingga divalidasi BPS.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link to="/app/presentation">
-            <Button size="sm" variant="secondary">
-              Mode presentasi
-            </Button>
-          </Link>
-          <Link to="/app">
-            <Button size="sm" variant="gold" rightIcon={<ArrowRight2 size={14} variant="Bold" color="currentColor" />}>
-              Ke beranda
-            </Button>
-          </Link>
+          <Button size="sm" variant="secondary" onClick={() => navigate('/app/presentation')}>
+            Mode presentasi
+          </Button>
+          <Button
+            size="sm"
+            variant="gold"
+            rightIcon={<ArrowRight2 size={14} variant="Bold" color="currentColor" aria-hidden />}
+            onClick={() => navigate('/app')}
+          >
+            Ke beranda
+          </Button>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useReducedMotion } from 'framer-motion'
 import {
   ArrowLeft2,
   Calendar,
@@ -51,7 +52,7 @@ import { NextStepsCard } from '@/features/workspace/NextStepsCard'
 import { ContohPanel } from '@/features/workspace/ContohPanel'
 import { SampelKalkulator } from '@/features/workspace/SampelKalkulator'
 import { TAB_GUIDES } from '@/content/howToWork'
-import { getProjectActivity } from '@/demo/projectActivity'
+import { isDemoProject } from '@/demo'
 import {
   exportStatusLabel,
   klasifikasiLabel,
@@ -85,6 +86,9 @@ const tabs: { id: TabId; label: string; icon: Icon }[] = [
   { id: 'activity', label: 'Riwayat', icon: TickSquare },
   { id: 'export', label: 'Ekspor', icon: DocumentDownload },
 ]
+
+const demoBadgeClass =
+  'bg-ink-50 font-medium text-ink-700 ring-1 ring-dashed ring-ink-900/15'
 
 function TabHowTo({ tabId }: { tabId: TabId }) {
   const g = TAB_GUIDES[tabId]
@@ -136,6 +140,7 @@ export function ProjectWorkspacePage() {
   )
 
   const tabPanelRef = useRef<HTMLDivElement>(null)
+  const reduceMotion = useReducedMotion()
 
   useEffect(() => {
     const q = searchParams.get('tab')
@@ -155,17 +160,41 @@ export function ProjectWorkspacePage() {
       },
       { replace: true },
     )
-    // Scroll so "Buka …" always reveals the work area (esp. on mobile)
     window.setTimeout(() => {
+      const behavior: ScrollBehavior = reduceMotion ? 'auto' : 'smooth'
       if (focusId) {
         const el = document.getElementById(focusId)
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          el.scrollIntoView({ behavior, block: 'start' })
           return
         }
       }
-      tabPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      tabPanelRef.current?.scrollIntoView({ behavior, block: 'start' })
     }, 60)
+  }
+
+  function onTabListKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    const keys = ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End']
+    if (!keys.includes(e.key)) return
+    e.preventDefault()
+    const current = tabs.findIndex((t) => t.id === tab)
+    if (current < 0) return
+    let next = current
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      next = (current + 1) % tabs.length
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      next = (current - 1 + tabs.length) % tabs.length
+    } else if (e.key === 'Home') {
+      next = 0
+    } else if (e.key === 'End') {
+      next = tabs.length - 1
+    }
+    const nextId = tabs[next]?.id
+    if (!nextId) return
+    goTab(nextId)
+    window.requestAnimationFrame(() => {
+      document.getElementById(`tab-${nextId}`)?.focus()
+    })
   }
 
   const progress = useMemo(
@@ -217,9 +246,9 @@ export function ProjectWorkspacePage() {
 
   const phase = getPhase(project.currentPhaseId)!
   const stage = getStageForPhase(project.currentPhaseId)
-  const activity = getProjectActivity(project)
   const owner = projectOwner(project)
   const opd = projectOpd(project)
+  const demo = isDemoProject(project)
 
   async function handleExport() {
     if (!project || !exportAllowed) {
@@ -285,77 +314,92 @@ export function ProjectWorkspacePage() {
       !project.rekomendasiBps.penyelenggara.trim())
 
   return (
-    <div className="pb-24 md:pb-8">
-      <div className="mb-6">
+    <div>
+      <div className="mb-8">
         <Link
           to="/app"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-950"
+          className="focus-ring mb-4 inline-flex items-center gap-1.5 rounded-lg text-sm text-ink-700 hover:text-ink-950"
         >
-          <ArrowLeft2 size={16} variant="Bold" color="currentColor" /> Beranda
+          <ArrowLeft2 size={16} variant="Bold" color="currentColor" aria-hidden /> Beranda
         </Link>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
-            <div className="mb-2 flex flex-wrap gap-2">
-              <Badge tone="brand">{jenisLabel(project.jenisKegiatan)}</Badge>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink-600">
+              Ruang kerja perencanaan
+            </p>
+            <div className="mb-2 flex flex-wrap items-center gap-2">
               <Badge>{statusLabel(project.status)}</Badge>
-              <Badge tone="gold">{klasifikasiLabel(project.klasifikasi)}</Badge>
-              <Badge tone={exportAllowed ? 'success' : 'warning'}>
-                {exportStatusLabel(project)}
-              </Badge>
+              {demo ? (
+                <Badge className={demoBadgeClass}>Demo · contoh ilustratif</Badge>
+              ) : null}
+              <Badge tone="brand">{jenisLabel(project.jenisKegiatan)}</Badge>
             </div>
-            <h1 className="font-display text-3xl font-semibold tracking-tight">
+            <h1 className="break-words font-display text-[1.85rem] font-semibold leading-tight tracking-tight text-ink-950 sm:text-4xl">
               {project.name}
             </h1>
-            <p className="mt-1 max-w-2xl text-sm text-ink-700">{project.description}</p>
+            {project.description ? (
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-700 sm:text-base">
+                {project.description}
+              </p>
+            ) : null}
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-6">
+              <div className="min-w-0">
+                <div className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-600">
+                  Fase saat ini
+                </div>
+                <div className="mt-0.5 text-sm font-medium text-ink-950">
+                  {stage?.title ?? '—'} · {phase.titleId}
+                </div>
+              </div>
+              <div className="min-w-0 max-w-sm flex-1">
+                <div className="mb-1.5 flex justify-between text-xs text-ink-600">
+                  <span>Penyelesaian wajib</span>
+                  <span className="font-semibold text-ink-900">{progress.pct}%</span>
+                </div>
+                <ProgressBar
+                  value={progress.pct}
+                  premium={progress.pct >= 80}
+                  label="Progres checklist wajib"
+                  delta={progressDelta}
+                />
+              </div>
+            </div>
             <SaveIndicator
               className="mt-3"
               phase={savePhase}
               updatedAt={project.updatedAt}
             />
-            <div className="mt-4 grid gap-2 rounded-2xl border border-border/80 bg-white/80 p-4 text-xs sm:grid-cols-2 lg:grid-cols-3">
-              {[
-                ['OPD', opd],
-                ['Penanggung jawab', owner],
-                ['Klasifikasi', klasifikasiLabel(project.klasifikasi)],
-                ['Metode', methodLabel(project)],
-                ['Portal rujukan', portalComplete ? 'Sudah dikonfirmasi' : 'Belum lengkap'],
+            <dl className="mt-5 grid grid-cols-1 gap-x-8 gap-y-2.5 border-t border-border/70 pt-4 sm:grid-cols-2">
+              {(
                 [
-                  'Rekomendasi BPS',
-                  project.checklistState['de-12'] ? 'Disiapkan' : 'Belum / tidak wajib',
-                ],
-                ['Dibuat', formatDateTime(project.createdAt)],
-                ['Diperbarui', formatDateTime(project.updatedAt)],
-                ['Fase saat ini', `${stage?.title ?? '—'} · ${phase.titleId}`],
-              ].map(([k, v]) => (
-                <div key={k}>
-                  <div className="font-semibold uppercase tracking-wide text-ink-600/70">{k}</div>
-                  <div className="mt-0.5 text-sm font-medium text-ink-950">{v}</div>
+                  ['OPD', opd],
+                  ['Penanggung jawab', owner],
+                  ['Klasifikasi', klasifikasiLabel(project.klasifikasi)],
+                  ['Metode', methodLabel(project)],
+                  ['Portal rujukan', portalComplete ? 'Sudah dikonfirmasi' : 'Belum lengkap'],
+                  [
+                    'Rekomendasi BPS',
+                    project.checklistState['de-12'] ? 'Disiapkan' : 'Belum / tidak wajib',
+                  ],
+                  ['Dibuat', formatDateTime(project.createdAt)],
+                  ['Diperbarui', formatDateTime(project.updatedAt)],
+                  ['Ekspor draf', exportStatusLabel(project)],
+                ] as const
+              ).map(([k, v]) => (
+                <div key={k} className="min-w-0">
+                  <dt className="text-xs font-medium text-ink-600">{k}</dt>
+                  <dd className="mt-0.5 break-words text-sm text-ink-900">{v}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </div>
-          <div
-            className={cn(
-              'w-full max-w-xs rounded-2xl border border-border/80 bg-white/80 p-4 shadow-(--shadow-soft) backdrop-blur-sm',
-              progress.pct >= 95 && 'animate-celebrate success-flash',
-            )}
-          >
-            <div className="mb-1.5 flex justify-between text-xs text-ink-600">
-              <span>Penyelesaian wajib</span>
-              <span className="font-semibold text-ink-900">{progress.pct}%</span>
-            </div>
-            <ProgressBar
-              value={progress.pct}
-              premium={progress.pct >= 80}
-              label="Progres checklist wajib"
-              delta={progressDelta}
-            />
+          <div className="flex w-full shrink-0 flex-col gap-2 sm:max-w-xs lg:w-56">
             <Button
-              className="mt-4 w-full"
-              variant="gold"
+              className="w-full min-h-12"
+              variant={exportAllowed ? 'gold' : 'secondary'}
               loading={exporting}
               success={exportSuccess}
-              leftIcon={<DocumentDownload size={16} variant="Bold" color="currentColor" />}
+              leftIcon={<DocumentDownload size={16} variant="Bold" color="currentColor" aria-hidden />}
               disabled={exporting}
               onClick={() => {
                 if (!exportAllowed) {
@@ -372,11 +416,11 @@ export function ProjectWorkspacePage() {
                   : 'Lihat persyaratan ekspor'}
             </Button>
             <Button
-              className="mt-2 w-full"
+              className="w-full"
               size="sm"
               variant="secondary"
               loading={sharing}
-              leftIcon={<Link1 size={14} variant="Bold" color="currentColor" />}
+              leftIcon={<Link1 size={14} variant="Bold" color="currentColor" aria-hidden />}
               onClick={() => {
                 setSharing(true)
                 void (async () => {
@@ -409,11 +453,6 @@ export function ProjectWorkspacePage() {
             >
               Salin tautan berbagi
             </Button>
-            {!exportAllowed ? (
-              <p className="mt-2 text-center text-xs text-ink-600">
-                Klik untuk melihat daftar persyaratan
-              </p>
-            ) : null}
           </div>
         </div>
       </div>
@@ -426,7 +465,7 @@ export function ProjectWorkspacePage() {
       {!exportAllowed ? (
         <ValidationBanner
           issues={validationIssues}
-          className="mb-6"
+          className="mb-4"
           onNavigate={(t) => {
             const focus =
               t === 'workflow'
@@ -444,7 +483,7 @@ export function ProjectWorkspacePage() {
       ) : validationIssues.some((i) => i.severity === 'warning') ? (
         <ValidationBanner
           issues={validationIssues.filter((i) => i.severity === 'warning')}
-          className="mb-6"
+          className="mb-4"
           onNavigate={(t) => goTab(t as TabId)}
         />
       ) : null}
@@ -469,11 +508,12 @@ export function ProjectWorkspacePage() {
                 type="button"
                 onClick={() => setJenis(project.id, j)}
                 className={cn(
-                  'rounded-full px-3 py-1 text-xs font-medium transition',
+                  'focus-ring min-h-9 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
                   project.jenisKegiatan === j
                     ? 'bg-ink-900 text-white'
                     : 'bg-white text-ink-700 ring-1 ring-border-strong',
                 )}
+                aria-pressed={project.jenisKegiatan === j}
               >
                 {jenisLabel(j)}
               </button>
@@ -487,7 +527,14 @@ export function ProjectWorkspacePage() {
         id="workspace-tab-panel"
         className="scroll-mt-24"
       >
-      <div className="mb-6 flex gap-1 overflow-x-auto rounded-2xl bg-ink-50/80 p-1.5 ring-1 ring-border/70 pb-1.5" role="tablist" aria-label="Bagian workspace">
+      <div className="relative mb-5 max-w-full sm:mb-6">
+        <div
+          role="tablist"
+          aria-label="Bagian workspace"
+          aria-orientation="horizontal"
+          onKeyDown={onTabListKeyDown}
+          className="flex min-w-0 w-full gap-1 overflow-x-auto overscroll-x-contain rounded-2xl bg-ink-50/80 p-1 ring-1 ring-border/70 [-webkit-overflow-scrolling:touch] [scrollbar-width:thin]"
+        >
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -495,25 +542,33 @@ export function ProjectWorkspacePage() {
             role="tab"
             id={`tab-${t.id}`}
             aria-selected={tab === t.id}
-            aria-controls={`panel-${t.id}`}
+            aria-controls="workspace-tab-content"
             tabIndex={tab === t.id ? 0 : -1}
             onClick={() => goTab(t.id)}
             className={cn(
-              'inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300',
+              'focus-ring inline-flex min-h-12 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-medium transition-colors duration-200',
               tab === t.id
-                ? 'bg-ink-900 text-white shadow-md'
-                : 'text-ink-700 hover:bg-white hover:shadow-sm',
+                ? 'bg-ink-900 text-white'
+                : 'text-ink-700 hover:bg-white hover:text-ink-950',
             )}
           >
             <t.icon
               size={16}
               variant={tab === t.id ? 'Bold' : 'Linear'}
               color="currentColor"
+              aria-hidden
             />
             {t.label}
           </button>
         ))}
+        </div>
       </div>
+
+      <div
+        id="workspace-tab-content"
+        role="tabpanel"
+        aria-labelledby={`tab-${tab}`}
+      >
 
       {tab === 'workflow' && (
         <div className="space-y-4">
@@ -542,11 +597,13 @@ export function ProjectWorkspacePage() {
                         type="button"
                         onClick={() => setPhase(project.id, pid as GsbpmPhaseId)}
                         className={cn(
-                          'flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition',
+                          'focus-ring flex min-h-12 w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors',
                           active
                             ? 'bg-ink-900 text-white'
-                            : 'hover:bg-ink-50 text-ink-800',
+                            : 'text-ink-800 hover:bg-ink-50',
                         )}
+                        aria-pressed={active}
+                        aria-label={`${ph.code}. ${ph.titleId}, progres ${pr.pct} persen`}
                       >
                         <span>
                           {ph.code}. {ph.titleId}
@@ -1513,30 +1570,39 @@ export function ProjectWorkspacePage() {
           <TabHowTo tabId="activity" />
         <Card className="max-w-2xl">
           <div className="mb-4 flex items-center gap-2">
-            <h2 className="text-lg font-semibold">Riwayat aktivitas proyek</h2>
+            <h2 className="text-lg font-semibold">Riwayat proyek</h2>
             <HelpTip topic="activity" />
           </div>
-          <p className="mb-4 text-sm text-ink-700">
-            Jejak aktivitas di perangkat Anda. Tidak perlu diisi manual dan tidak memengaruhi ekspor.
+          <p className="mb-4 text-sm leading-relaxed text-ink-700">
+            StatPlan saat ini menyimpan waktu pembuatan dan perubahan proyek di perangkat ini,
+            bukan log setiap aktivitas.
           </p>
-          <ul className="space-y-3">
-            {activity.map((a) => (
-              <li
-                key={a.id}
-                className="rounded-xl border border-border/80 bg-ink-50/50 px-4 py-3"
-              >
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-600">
-                  {formatDateTime(a.at)}
-                </div>
-                <div className="mt-0.5 text-sm font-medium text-ink-950">{a.action}</div>
-                <div className="text-xs text-ink-700">{a.detail}</div>
-                <div className="mt-1 text-[11px] text-ink-600">{a.actor}</div>
-              </li>
-            ))}
-          </ul>
+          <dl className="space-y-3">
+            <div className="rounded-xl border border-border/70 bg-ink-50/50 px-4 py-3">
+              <dt className="text-xs font-medium text-ink-600">Dibuat</dt>
+              <dd className="mt-0.5 text-sm font-medium text-ink-950">
+                {formatDateTime(project.createdAt)}
+              </dd>
+            </div>
+            <div className="rounded-xl border border-border/70 bg-ink-50/50 px-4 py-3">
+              <dt className="text-xs font-medium text-ink-600">Terakhir diubah</dt>
+              <dd className="mt-0.5 text-sm font-medium text-ink-950">
+                {formatDateTime(project.updatedAt)}
+              </dd>
+            </div>
+            {project.portalSdi.checkedAt ? (
+              <div className="rounded-xl border border-border/70 bg-ink-50/50 px-4 py-3">
+                <dt className="text-xs font-medium text-ink-600">Pemeriksaan portal dicatat</dt>
+                <dd className="mt-0.5 text-sm font-medium text-ink-950">
+                  {formatDateTime(project.portalSdi.checkedAt)}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
         </Card>
         </div>
       )}
+      </div>
       </div>
     </div>
   )

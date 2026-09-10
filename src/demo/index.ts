@@ -1,6 +1,10 @@
 export {
   createDemoDatabase,
   getDemoProjects,
+  isDemoProject,
+  mergeDemoProjects,
+  mergeImportedProjects,
+  removeDemoProjects,
   getDemoRecordCounts,
   exportDemoJson,
   importDemoJson,
@@ -19,7 +23,12 @@ export {
   ONBOARDING_KEY,
 } from './seed'
 export { buildDemoProjects } from './projects'
-export { computeDashboardStatistics } from './statistics'
+export {
+  computeDashboardStatistics,
+  isProjectReadyForReview,
+  isRecommendationPreparationPending,
+  isReviewStatusStale,
+} from './statistics'
 export { buildDemoActivityLog } from './activity'
 export { getProjectActivity } from './projectActivity'
 export { HELP_TOPICS } from './help'

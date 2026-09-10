@@ -122,7 +122,7 @@ export function klasifikasiLabel(k: string) {
 
 export function exportStatusLabel(project: Project) {
   if (canExport(project)) {
-    return project.status === 'ready_for_review' ? 'Siap / sudah diekspor' : 'Siap diekspor'
+    return 'Siap diekspor'
   }
   const pct = computeProjectProgress(
     project.jenisKegiatan,
@@ -130,10 +130,10 @@ export function exportStatusLabel(project: Project) {
     project.checklistState,
   ).pct
   if (!project.portalSdi.sirusaChecked || !project.portalSdi.romantikChecked) {
-    return 'Menunggu cek portal'
+    return 'Belum siap diekspor · portal belum lengkap'
   }
-  if (pct < 80) return `Checklist ${pct}% (min. 80%)`
-  return 'Belum memenuhi syarat ekspor'
+  if (pct < 80) return `Belum siap diekspor · checklist ${pct}% (min. 80%)`
+  return 'Belum siap diekspor'
 }
 
 export function methodLabel(project: Project) {

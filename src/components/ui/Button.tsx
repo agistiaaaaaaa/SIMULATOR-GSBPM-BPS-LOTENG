@@ -20,18 +20,18 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<Variant, string> = {
   primary:
-    'bg-ink-900 text-white hover:bg-ink-800 hover:-translate-y-0.5 hover:shadow-(--shadow-lift) active:translate-y-0 disabled:bg-ink-900/40 disabled:translate-y-0 disabled:shadow-none',
+    'bg-ink-900 text-white hover:bg-ink-800 motion-safe:hover:-translate-y-0.5 hover:shadow-(--shadow-lift) active:translate-y-0 active:bg-ink-950 disabled:bg-ink-900/40 disabled:translate-y-0 disabled:shadow-none',
   secondary:
-    'bg-white/90 text-ink-900 border border-border-strong hover:bg-ink-50 hover:border-ink-600/30 hover:-translate-y-0.5 hover:shadow-(--shadow-soft) active:translate-y-0',
-  ghost: 'bg-transparent text-ink-800 hover:bg-ink-100/80',
-  danger: 'bg-danger text-white hover:bg-danger/90 hover:shadow-md',
-  gold: 'bg-gold-500 text-ink-950 hover:bg-gold-400 font-semibold hover:-translate-y-0.5 hover:shadow-(--shadow-glow) active:translate-y-0',
+    'bg-white/90 text-ink-900 border border-border-strong hover:bg-ink-50 hover:border-ink-600/30 motion-safe:hover:-translate-y-0.5 hover:shadow-(--shadow-soft) active:translate-y-0 active:bg-ink-100',
+  ghost: 'bg-transparent text-ink-800 hover:bg-ink-100/80 active:bg-ink-100',
+  danger: 'bg-danger text-white hover:bg-danger/90 hover:shadow-md active:bg-danger/80',
+  gold: 'bg-gold-500 text-ink-950 hover:bg-gold-400 font-semibold motion-safe:hover:-translate-y-0.5 hover:shadow-(--shadow-glow) active:translate-y-0 active:bg-gold-400',
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-9 px-3.5 text-sm gap-1.5 rounded-xl',
-  md: 'h-11 px-4 text-sm gap-2 rounded-xl',
-  lg: 'h-12 px-6 text-base gap-2.5 rounded-2xl',
+  sm: 'min-h-11 h-11 px-3.5 text-sm gap-1.5 rounded-xl sm:h-9 sm:min-h-9',
+  md: 'min-h-12 h-12 px-4 text-sm gap-2 rounded-xl sm:h-11 sm:min-h-11',
+  lg: 'min-h-12 h-12 px-6 text-base gap-2.5 rounded-2xl',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -70,7 +70,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'relative inline-flex items-center justify-center overflow-hidden font-medium transition-all duration-200 ease-out focus-ring disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98]',
+        'relative inline-flex touch-manipulation items-center justify-center overflow-hidden font-medium transition-all duration-200 ease-out focus-ring disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98]',
         variants[variant],
         sizes[size],
         success && 'success-flash',

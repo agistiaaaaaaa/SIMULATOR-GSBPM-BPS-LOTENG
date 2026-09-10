@@ -1,4 +1,4 @@
-import { ArrowRight2, TickCircle, Warning2 } from 'iconsax-react'
+import { ArrowRight2 } from 'iconsax-react'
 import { getProjectNextSteps, type WorkspaceTabId } from '@/content/howToWork'
 import type { Project } from '@/domain/types'
 import { Card, Badge } from '@/components/ui/Badge'
@@ -27,6 +27,12 @@ function focusForStep(id: string, tab: WorkspaceTabId): string | undefined {
   return 'workspace-tab-panel'
 }
 
+function priorityLabel(priority: 'wajib' | 'disarankan' | 'selesai') {
+  if (priority === 'wajib') return 'Wajib'
+  if (priority === 'selesai') return 'Siap'
+  return 'Disarankan'
+}
+
 export function NextStepsCard({
   project,
   onGoTab,
@@ -36,83 +42,87 @@ export function NextStepsCard({
 }) {
   const steps = getProjectNextSteps(project)
   const ready = steps.some((s) => s.priority === 'selesai' && s.id === 'export-ready')
+  const primary = steps[0]
+  const rest = steps.slice(1)
+
+  if (!primary) return null
 
   return (
     <Card
       className={cn(
         'mb-6',
-        ready
-          ? 'border-success/25 bg-success-soft/25'
-          : 'border-ink-900/10 bg-gradient-to-br from-ink-50 to-white',
+        ready ? 'border-success/20 bg-success-soft/20' : undefined,
       )}
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          {ready ? (
-            <TickCircle size={18} variant="Bold" color="#0f7b4c" />
-          ) : (
-            <Warning2 size={18} variant="Bold" color="#0b3a5c" />
-          )}
-          <h2 className="font-semibold text-ink-950">
-            {ready ? 'Siap ekspor — langkah berikutnya' : 'Langkah berikutnya'}
-          </h2>
-          <HelpTip topic="how_to" />
-        </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => onGoTab('export')}
-          className="text-xs"
+      <div className="mb-1 flex flex-wrap items-center gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-600">
+          {ready ? 'Siap ekspor' : 'Langkah berikutnya'}
+        </p>
+        <HelpTip topic="how_to" />
+        <Badge
+          tone={
+            primary.priority === 'wajib'
+              ? 'warning'
+              : primary.priority === 'selesai'
+                ? 'success'
+                : 'gold'
+          }
         >
-          Lihat semua persyaratan
+          {priorityLabel(primary.priority)}
+        </Badge>
+      </div>
+      <h2 className="text-base font-semibold tracking-tight text-ink-950 sm:text-lg">
+        {primary.title}
+      </h2>
+      <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-700">{primary.detail}</p>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Button
+          className="w-full sm:w-auto"
+          variant={ready ? 'secondary' : primary.priority === 'wajib' ? 'primary' : 'secondary'}
+          rightIcon={<ArrowRight2 size={14} variant="Bold" color="currentColor" aria-hidden />}
+          onClick={() => onGoTab(primary.tab, focusForStep(primary.id, primary.tab))}
+        >
+          Buka {tabLabel[primary.tab]}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => onGoTab('export')}>
+          Semua persyaratan
         </Button>
       </div>
-      <p className="mb-3 text-xs text-ink-600">
-        {ready
-          ? 'Persyaratan wajib sudah terpenuhi. Unduh draf di tab Ekspor.'
-          : 'Ini bukan error aplikasi. Tombol di bawah membuka bagian yang harus diisi. Setelah syarat wajib selesai, tombol unduh draf akan aktif.'}
-      </p>
-      <ol className="space-y-2">
-        {steps.map((s, i) => (
-          <li
-            key={`${s.id}-${i}`}
-            className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-border bg-white px-3 py-2.5"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="mb-1 flex flex-wrap items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ink-900 text-[10px] font-semibold text-white">
-                  {i + 1}
-                </span>
-                <span className="text-sm font-medium text-ink-950">{s.title}</span>
-                <Badge
-                  tone={
-                    s.priority === 'wajib'
-                      ? 'warning'
-                      : s.priority === 'selesai'
-                        ? 'success'
-                        : 'gold'
-                  }
-                >
-                  {s.priority === 'wajib'
-                    ? 'Wajib'
-                    : s.priority === 'selesai'
-                      ? 'Siap'
-                      : 'Disarankan'}
-                </Badge>
-              </div>
-              <p className="text-xs leading-relaxed text-ink-700">{s.detail}</p>
-            </div>
-            <Button
-              size="sm"
-              variant={s.priority === 'wajib' ? 'primary' : 'secondary'}
-              rightIcon={<ArrowRight2 size={14} variant="Bold" color="currentColor" />}
-              onClick={() => onGoTab(s.tab, focusForStep(s.id, s.tab))}
+      {rest.length > 0 ? (
+        <ul className="mt-4 space-y-1 border-t border-border/70 pt-3">
+          {rest.map((s, i) => (
+            <li
+              key={`${s.id}-${i}`}
+              className="flex flex-wrap items-start justify-between gap-2 py-1.5"
             >
-              Buka {tabLabel[s.tab]}
-            </Button>
-          </li>
-        ))}
-      </ol>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-ink-900">{s.title}</span>
+                  <Badge
+                    tone={
+                      s.priority === 'wajib'
+                        ? 'warning'
+                        : s.priority === 'selesai'
+                          ? 'success'
+                          : 'gold'
+                    }
+                  >
+                    {priorityLabel(s.priority)}
+                  </Badge>
+                </div>
+                <p className="mt-0.5 text-xs leading-relaxed text-ink-600">{s.detail}</p>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onGoTab(s.tab, focusForStep(s.id, s.tab))}
+              >
+                Buka {tabLabel[s.tab]}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </Card>
   )
 }

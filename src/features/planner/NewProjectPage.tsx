@@ -51,7 +51,7 @@ export function NewProjectPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl pb-24 md:pb-8">
+    <div className="mx-auto max-w-3xl">
       <div className="mb-8">
         <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-ink-100 px-3 py-1 text-sm font-medium text-ink-800 ring-1 ring-ink-900/5">
           <MagicStar size={16} variant="Bold" color="currentColor" />

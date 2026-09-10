@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft2,
   ArrowRight2,
@@ -182,6 +182,7 @@ const demoProjectsBrief = [
 ]
 
 export function PresentationPage() {
+  const navigate = useNavigate()
   const projects = useAppStore((s) => s.projects)
   const loadDemoData = useAppStore((s) => s.loadDemoData)
   const [tab, setTab] = useState<TabId>('slide')
@@ -222,7 +223,7 @@ export function PresentationPage() {
   ]
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 pb-24 md:pb-8">
+    <div className="mx-auto max-w-4xl space-y-5">
       <div>
         <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-600">
           Mode presentasi
@@ -284,11 +285,13 @@ export function PresentationPage() {
             >
               Proyek berikutnya
             </Button>
-            <Link to={`/app/projects/${sample.id}`}>
-              <Button size="sm" variant="gold">
-                Buka workspace
-              </Button>
-            </Link>
+            <Button
+              size="sm"
+              variant="gold"
+              onClick={() => navigate(`/app/projects/${sample.id}`)}
+            >
+              Buka workspace
+            </Button>
           </div>
         </div>
       </Card>

@@ -57,7 +57,7 @@ export function SearchPage() {
   const hits = useMemo(() => searchWorkspace(projects, q), [projects, q])
 
   return (
-    <div className="mx-auto max-w-3xl pb-24 lg:pb-8">
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         eyebrow="Pencarian cepat"
         title="Cari"

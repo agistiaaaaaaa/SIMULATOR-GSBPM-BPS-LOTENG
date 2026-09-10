@@ -15,7 +15,7 @@ import {
 } from 'iconsax-react'
 import { useAppStore } from '@/store/appStore'
 import { toast } from '@/store/toastStore'
-import { getDemoRecordCounts, resetOnboarding } from '@/demo/seed'
+import { getDemoRecordCounts, isDemoProject, resetOnboarding } from '@/demo/seed'
 import { Card } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -27,7 +27,10 @@ export function SettingsPage() {
   const resetDemo = useAppStore((s) => s.resetDemo)
   const exportDemoBundle = useAppStore((s) => s.exportDemoBundle)
   const importDemoBundle = useAppStore((s) => s.importDemoBundle)
-  const projectCount = useAppStore((s) => s.projects.length)
+  const projects = useAppStore((s) => s.projects)
+  const projectCount = projects.length
+  const demoProjectCount = projects.filter(isDemoProject).length
+  const hasDemoProjects = demoProjectCount > 0
   const counts = getDemoRecordCounts()
   const fileRef = useRef<HTMLInputElement>(null)
   const [importMsg, setImportMsg] = useState('')
@@ -63,7 +66,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 pb-24 md:pb-8">
+    <div className="mx-auto max-w-2xl space-y-4">
       <div className="mb-2">
         <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-600">
           Konfigurasi
@@ -132,29 +135,34 @@ npm run deploy:prod`}
           {counts.variables} variabel, {counts.questionnaireItems} butir kuesioner) untuk
           demonstrasi kepada BPS.
         </p>
-        <p className="mt-2 text-xs text-ink-600">Proyek aktif saat ini: {projectCount}</p>
+        <p className="mt-2 text-xs text-ink-600">
+          Proyek aktif saat ini: {projectCount} · demo: {demoProjectCount} · proyek Anda:{' '}
+          {projectCount - demoProjectCount}
+        </p>
         <div className="mt-5 flex flex-wrap gap-2">
           <Button
             variant="gold"
             leftIcon={<Data size={16} variant="Bold" color="currentColor" />}
             onClick={() => {
-              if (projectCount === 0) {
+              if (!hasDemoProjects) {
                 loadDemoData()
-                toast('Data demo berhasil dimuat')
+                toast('Data demo berhasil ditambahkan tanpa mengubah proyek Anda')
               } else {
                 setConfirm('load')
               }
             }}
           >
-            Muat data demo
+            {hasDemoProjects ? 'Perbarui data demo' : 'Muat data demo'}
           </Button>
-          <Button
-            variant="secondary"
-            leftIcon={<Refresh2 size={16} variant="Bold" color="currentColor" />}
-            onClick={() => setConfirm('reset')}
-          >
-            Kosongkan data demo
-          </Button>
+          {hasDemoProjects ? (
+            <Button
+              variant="secondary"
+              leftIcon={<Refresh2 size={16} variant="Bold" color="currentColor" />}
+              onClick={() => setConfirm('reset')}
+            >
+              Bersihkan data demo
+            </Button>
+          ) : null}
           <Button
             variant="secondary"
             leftIcon={<ExportSquare size={16} variant="Bold" color="currentColor" />}
@@ -252,28 +260,28 @@ npm run deploy:prod`}
 
       <ConfirmDialog
         open={confirm === 'load'}
-        title="Muat ulang data demo?"
-        description="Proyek saat ini akan diganti dengan data contoh demonstrasi."
-        confirmLabel="Muat data demo"
+        title="Perbarui data demo?"
+        description="Proyek contoh akan diperbarui ke versi terbaru. Proyek yang Anda buat sendiri tidak akan diubah atau dihapus."
+        confirmLabel="Perbarui data demo"
         cancelLabel="Batalkan"
         onCancel={() => setConfirm(null)}
         onConfirm={() => {
           loadDemoData()
-          toast('Data demo berhasil dimuat')
+          toast('Data demo berhasil diperbarui tanpa mengubah proyek Anda')
           setConfirm(null)
         }}
       />
       <ConfirmDialog
         open={confirm === 'reset'}
-        title="Kosongkan data demo?"
-        description="Semua proyek pada perangkat ini akan dihapus. Tindakan ini tidak dapat dibatalkan."
-        confirmLabel="Kosongkan"
+        title="Bersihkan data demo?"
+        description="Proyek contoh akan dihapus. Proyek yang Anda buat sendiri tidak akan terpengaruh. Tindakan ini tidak dapat dibatalkan."
+        confirmLabel="Bersihkan data demo"
         cancelLabel="Batalkan"
         danger
         onCancel={() => setConfirm(null)}
         onConfirm={() => {
           resetDemo()
-          toast('Data demo dikosongkan')
+          toast('Data demo berhasil dibersihkan')
           setConfirm(null)
         }}
       />

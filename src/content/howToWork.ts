@@ -183,7 +183,7 @@ export const TAB_GUIDES: Record<
   },
   activity: {
     title: 'Cara kerja tab ini',
-    body: 'Jejak aktivitas proyek (dibuat, diubah, ekspor, dll.) untuk audit ringan di perangkat Anda. Tidak perlu diisi manual.',
+    body: 'StatPlan menyimpan waktu pembuatan dan perubahan terakhir di perangkat ini — bukan log setiap aktivitas. Tidak perlu diisi manual dan tidak memengaruhi ekspor.',
   },
   export: {
     title: 'Cara kerja tab ini',

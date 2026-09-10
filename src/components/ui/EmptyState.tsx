@@ -26,7 +26,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center px-6 py-14 text-center surface-card premium-mesh animate-fade-up',
+        'flex flex-col items-center px-5 py-12 text-center surface-card sm:px-6 sm:py-14',
         className,
       )}
     >
@@ -43,7 +43,7 @@ export function EmptyState({
       {(actionLabel || secondaryLabel) && (
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           {actionLabel && onAction ? (
-            <Button variant="gold" onClick={onAction}>
+            <Button variant="primary" onClick={onAction}>
               {actionLabel}
             </Button>
           ) : null}
@@ -74,19 +74,27 @@ export function PageHeader({
   actions?: React.ReactNode
 }) {
   return (
-    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
+    <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:gap-5 lg:mb-10 lg:flex-row lg:items-end lg:justify-between">
+      <div className="min-w-0 max-w-2xl">
         {eyebrow ? (
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-600">
+          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-bps-blue sm:text-xs sm:text-ink-600">
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-ink-950 sm:text-4xl">
+        <h1 className="font-display text-[1.65rem] font-semibold leading-tight tracking-tight text-ink-950 sm:text-4xl">
           {title}
         </h1>
-        {description ? <p className="mt-1.5 max-w-2xl text-ink-700">{description}</p> : null}
+        {description ? (
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-700 sm:text-base">
+            {description}
+          </p>
+        ) : null}
       </div>
-      {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+      {actions ? (
+        <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+          {actions}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -100,7 +108,7 @@ export function SectionTitle({
 }) {
   return (
     <div className="mb-3 flex items-center gap-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-600">{children}</h2>
+      <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-600">{children}</h2>
       {hint}
     </div>
   )

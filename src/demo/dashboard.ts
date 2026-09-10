@@ -1,57 +1,138 @@
-import { computeProjectProgress } from '@/domain/gsbpm'
-import type { ActivityLogItem, Project } from '@/domain/types'
-import { buildDemoActivityLog } from './activity'
-import { computeDashboardStatistics, type DashboardStatistics } from './statistics'
+import { computeProjectProgress, GSBPM_PHASES } from '@/domain/gsbpm'
+import type { Project } from '@/domain/types'
+import {
+  computeDashboardStatistics,
+  isProjectReadyForReview,
+  type DashboardStatistics,
+} from './statistics'
 
-export interface DeadlineItem {
+const RECENT_LIMIT = 7
+const PLANNING_LIMIT = 5
+
+export interface RecentProjectItem {
   projectId: string
   projectName: string
-  label: string
-  weekEnd: number
+  updatedAt: string
+}
+
+export interface PlanningWeekItem {
+  projectId: string
+  projectName: string
   phaseTitle: string
+  planTitle: string
+  startWeek: number
+  endWeek: number
+  updatedAt: string
+  href: string
 }
 
 export interface DashboardBundle {
   stats: DashboardStatistics
-  activities: ActivityLogItem[]
-  deadlines: DeadlineItem[]
-  recentlyExported: { projectId: string; name: string; at: string }[]
+  recentlyUpdated: RecentProjectItem[]
+  planningWeeks: PlanningWeekItem[]
+  readyForReviewProjects: { projectId: string; name: string; updatedAt: string }[]
 }
 
-export function buildDeadlines(projects: Project[]): DeadlineItem[] {
-  return projects
-    .filter((p) => p.status !== 'archived')
-    .map((p) => {
-      const current = p.timeline.find((t) => t.phaseId === p.currentPhaseId) ?? p.timeline[p.timeline.length - 1]
-      return {
-        projectId: p.id,
-        projectName: p.name,
-        label: current?.title ?? 'Tahap berjalan',
-        weekEnd: current?.endWeek ?? 16,
-        phaseTitle: current?.title ?? p.currentPhaseId,
-      }
+function hasValidTimestamp(iso: string | undefined): boolean {
+  if (!iso) return false
+  return Number.isFinite(Date.parse(iso))
+}
+
+function asPositiveWeek(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return null
+  return value
+}
+
+function gsbpmPhaseTitle(phaseId: string): string | null {
+  const phase = GSBPM_PHASES.find((item) => item.id === phaseId)
+  return phase?.titleId ?? null
+}
+
+export function planningWeekLabel(startWeek: number, endWeek: number): string {
+  if (startWeek === endWeek) return `Rencana minggu ke-${startWeek}`
+  return `Rencana minggu ke-${startWeek}–${endWeek}`
+}
+
+export function buildRecentlyUpdatedProjects(
+  projects: Project[],
+  limit = RECENT_LIMIT,
+): RecentProjectItem[] {
+  return [...projects]
+    .filter((project) => project.status !== 'archived' && hasValidTimestamp(project.updatedAt))
+    .sort((a, b) => {
+      if (a.updatedAt !== b.updatedAt) return a.updatedAt < b.updatedAt ? 1 : -1
+      return a.id.localeCompare(b.id)
     })
-    .sort((a, b) => a.weekEnd - b.weekEnd)
-    .slice(0, 5)
+    .slice(0, limit)
+    .map((project) => ({
+      projectId: project.id,
+      projectName: project.name,
+      updatedAt: project.updatedAt,
+    }))
 }
 
-export function buildRecentlyExported(projects: Project[]) {
+export function buildPlanningWeeks(
+  projects: Project[],
+  limit = PLANNING_LIMIT,
+): PlanningWeekItem[] {
+  const items: PlanningWeekItem[] = []
+
+  for (const project of projects) {
+    if (project.status === 'archived') continue
+    if (isProjectReadyForReview(project)) continue
+    if (!Array.isArray(project.timeline) || project.timeline.length === 0) continue
+    if (!project.currentPhaseId) continue
+
+    const current = project.timeline.find(
+      (entry) => entry && entry.phaseId === project.currentPhaseId,
+    )
+    if (!current) continue
+
+    const startWeek = asPositiveWeek(current.startWeek)
+    const endWeek = asPositiveWeek(current.endWeek)
+    if (startWeek === null || endWeek === null) continue
+
+    const phaseTitle = gsbpmPhaseTitle(current.phaseId)
+    if (!phaseTitle) continue
+
+    items.push({
+      projectId: project.id,
+      projectName: project.name,
+      phaseTitle,
+      planTitle: current.title,
+      startWeek,
+      endWeek,
+      updatedAt: hasValidTimestamp(project.updatedAt) ? project.updatedAt : '',
+      href: `/app/projects/${project.id}?tab=timeline`,
+    })
+  }
+
+  return items
+    .sort((a, b) => {
+      if (a.endWeek !== b.endWeek) return a.endWeek - b.endWeek
+      if (a.updatedAt !== b.updatedAt) return a.updatedAt < b.updatedAt ? 1 : -1
+      return a.projectId.localeCompare(b.projectId)
+    })
+    .slice(0, limit)
+}
+
+export function buildReadyForReviewProjects(projects: Project[]) {
   return projects
-    .filter((p) => p.status === 'ready_for_review')
+    .filter(isProjectReadyForReview)
     .map((p) => ({
       projectId: p.id,
       name: p.name,
-      at: p.updatedAt,
+      updatedAt: p.updatedAt,
     }))
-    .sort((a, b) => (a.at < b.at ? 1 : -1))
+    .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
 }
 
 export function buildDashboardBundle(projects: Project[]): DashboardBundle {
   return {
     stats: computeDashboardStatistics(projects),
-    activities: buildDemoActivityLog(projects),
-    deadlines: buildDeadlines(projects),
-    recentlyExported: buildRecentlyExported(projects),
+    recentlyUpdated: buildRecentlyUpdatedProjects(projects),
+    planningWeeks: buildPlanningWeeks(projects),
+    readyForReviewProjects: buildReadyForReviewProjects(projects),
   }
 }
 

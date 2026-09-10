@@ -43,8 +43,8 @@ export const HELP_TOPICS = {
     body: 'Menampilkan rencana minggu kerja per fase GSBPM sebagai gambaran jadwal. Pada versi demo bersifat ilustratif dan tidak menjadi syarat ekspor. Gunakan sebagai acuan diskusi perencanaan dengan BPS/OPD.',
   },
   activity: {
-    title: 'Riwayat aktivitas',
-    body: 'Menampilkan jejak aktivitas proyek di perangkat Anda (pembuatan, perubahan, ekspor). Bersifat audit ringan — tidak perlu diisi manual dan tidak memengaruhi validasi ekspor.',
+    title: 'Riwayat proyek',
+    body: 'Menampilkan waktu pembuatan, perubahan terakhir, dan catatan pemeriksaan portal jika ada. Bukan log setiap aktivitas. Tidak perlu diisi manual dan tidak memengaruhi validasi ekspor.',
   },
   indicators: {
     title: 'Indikator',

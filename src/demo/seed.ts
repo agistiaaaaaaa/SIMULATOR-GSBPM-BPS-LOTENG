@@ -1,6 +1,5 @@
 import { computeProjectProgress } from '@/domain/gsbpm'
 import type { Project } from '@/domain/types'
-import { buildDemoActivityLog } from './activity'
 import { buildDashboardBundle } from './dashboard'
 import { buildDemoProjects } from './projects'
 
@@ -47,19 +46,78 @@ export function getDemoProjects(): Project[] {
   return createDemoDatabase().projects
 }
 
+/**
+ * Demo provenance is encoded in the stable IDs owned by the demo factory.
+ * User-created and shared projects use generated UUIDs instead.
+ */
+export function isDemoProject(project: Pick<Project, 'id'>): boolean {
+  return project.id.startsWith('demo-')
+}
+
+/**
+ * Refreshes the demo portion of a workspace without replacing user projects.
+ * Existing user ordering and object data are preserved. Fresh demo records are
+ * inserted where the first previous demo appeared, or appended for user-only
+ * workspaces.
+ */
+export function mergeDemoProjects(
+  existingProjects: Project[],
+  freshDemoProjects: Project[] = getDemoProjects(),
+): Project[] {
+  const firstDemoIndex = existingProjects.findIndex(isDemoProject)
+  if (firstDemoIndex === -1) {
+    return [...existingProjects, ...freshDemoProjects]
+  }
+
+  const beforeDemo = existingProjects
+    .slice(0, firstDemoIndex)
+    .filter((project) => !isDemoProject(project))
+  const afterDemo = existingProjects
+    .slice(firstDemoIndex)
+    .filter((project) => !isDemoProject(project))
+
+  return [...beforeDemo, ...freshDemoProjects, ...afterDemo]
+}
+
+/** Removes only demo-owned records and preserves every user project. */
+export function removeDemoProjects(projects: Project[]): Project[] {
+  return projects.filter((project) => !isDemoProject(project))
+}
+
+/**
+ * Imports a bundle without replacing local user work. Imported demo records
+ * refresh the demo portion; non-demo records are appended only when their IDs
+ * do not already exist, so the local version always wins on conflicts.
+ */
+export function mergeImportedProjects(
+  existingProjects: Project[],
+  importedProjects: Project[],
+): Project[] {
+  const importedDemoProjects = importedProjects.filter(isDemoProject)
+  const withImportedDemos =
+    importedDemoProjects.length > 0
+      ? mergeDemoProjects(existingProjects, importedDemoProjects)
+      : [...existingProjects]
+  const existingIds = new Set(withImportedDemos.map((project) => project.id))
+  const newImportedProjects = importedProjects.filter(
+    (project) => !isDemoProject(project) && !existingIds.has(project.id),
+  )
+
+  return [...withImportedDemos, ...newImportedProjects]
+}
+
 export function getDemoRecordCounts(projects: Project[] = getDemoProjects()) {
   const variables = projects.reduce((n, p) => n + p.variables.length, 0)
   const indicators = projects.reduce((n, p) => n + p.indicators.length, 0)
   const questions = projects.reduce((n, p) => n + p.questionnaire.length, 0)
   const timelineItems = projects.reduce((n, p) => n + p.timeline.length, 0)
-  const activities = buildDemoActivityLog(projects).length
   return {
     projects: projects.length,
     variables,
     indicators,
     questionnaireItems: questions,
     timelineItems,
-    activities,
+    activities: 0,
   }
 }
 
